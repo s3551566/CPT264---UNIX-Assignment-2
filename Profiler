@@ -1,0 +1,22 @@
+#!/bin/bash
+#Variables
+CPUTMP=O
+FREQ=0
+VIDTMP=0
+HD=0
+UPERCENT=0
+#Start Counter
+counter=1
+while [[ "$counter" -le "10" ]] ; do
+#CPU Temperature 
+CPUTMP=$(cat </sys/class/thermal/thermal_zone0/temp) | echo $counter
+#Frequency
+FREQ=$(vcgencmd measure_clock core) | echo $counter
+#Video tmp 
+VIDTMP=$(vcgencmd measure_temp) | echo $counter
+#Memory
+HD=$(free --giga) | echo $counter
+#CPU Usage
+UPERCENT=$(mpstat -P ALL -u 3)| echo $counter
+#incrementer counter
+((counter++))
