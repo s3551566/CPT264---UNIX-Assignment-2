@@ -1,22 +1,79 @@
 #!/bin/bash
+
+#Constants
+WAIT_TIME=1		# Wait 1 second between data collection
+
 #Variables
-CPUTMP=O
-FREQ=0
-VIDTMP=0
-HD=0
-UPERCENT=0
-#Start Counter
-counter=1
-while [[ "$counter" -le "10" ]] ; do
-#CPU Temperature 
-CPUTMP=$(cat </sys/class/thermal/thermal_zone0/temp) | echo $counter
-#Frequency
-FREQ=$(vcgencmd measure_clock core) | echo $counter
-#Video tmp 
-VIDTMP=$(vcgencmd measure_temp) | echo $counter
-#Memory
-HD=$(free --giga) | echo $counter
-#CPU Usage
-UPERCENT=$(mpstat -P ALL -u 3)| echo $counter
-#incrementer counter
-((counter++))
+CPUTEMP=O
+CPUFREQ=0
+VIDTEMP=0
+MEMSTAT=0
+CPUSTAT=0
+
+# Collect stats
+# Run until monitored process has terminated or stopped by user
+counter=0
+while ( true );
+do
+	(( counter++ ))
+
+	#CPU Temperature
+	CPUTEMP=$(cat </sys/class/thermal/thermal_zone0/temp)
+	if [ $? -ne 0 ]; then
+		echo "Could not get CPUTEMP"
+		break
+	fi
+
+	#Frequency
+	CPUFREQ=$(vcgencmd measure_clock core | awk 'BEGIN { FS = "=" } { printf "%.2f", $2/1000000 }' )
+	if [ $? -ne 0 ]; then
+		echo "Could not get CPUFREQ"
+		break
+	fi
+
+
+	#Video tmp
+	VIDTEMP=$(vcgencmd measure_temp | awk 'BEGIN { FS = "=" } { printf "%.2f", $2 }' )
+	if [ $? -ne 0 ]; then
+		echo "Could not get VIDTEMP"
+		break
+	fi
+
+
+	#Memory
+	MEMSTAT=$(free --giga | awk '(NR > 1)')
+	if [ $? -ne 0 ]; then
+		echo "Could not get MEMSTAT"
+		break
+	fi
+
+
+	#CPU Usage
+	CPUSTAT=$(mpstat | awk '(NR > 3)')
+	if [ $? -ne 0 ]; then
+		echo "Could not get CPUSTAT"
+		break
+	fi
+
+
+	# Write stats to current directory
+	FILENAME=$(printf "profile%08d" $counter)
+	if [ $? -ne 0 ]; then
+		echo "Could not generate filename $FILENAME"
+		break
+	fi
+
+	printf "%s\n%s\n%s\n%s\n%s\n%s\n" "$counter" "$CPUTEMP" "$CPUFREQ" "$VIDTEMP" "$MEMSTAT" "$CPUSTAT" > "$FILENAME"
+	if [ $? -ne 0 ]; then
+		echo "Could not write file $FILENAME"
+		break
+	fi
+
+	# Wait for next run
+	sleep $WAIT_TIME
+	if [ $? -ne 0 ]; then
+		echo "Could not perform wait"
+		break
+	fi
+
+done
