@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash\
 
 #Constants
 WAIT_TIME=1		# Wait 1 second between data collection
@@ -10,8 +10,19 @@ VIDTEMP=0
 MEMSTAT=0
 CPUSTAT=0
 
-# Collect stats
-# Run until monitored process has terminated or stopped by user
+
+#Function to signal handling
+
+	handler()
+	{
+		echo  "pid is" $$
+		kill -USR1 $$
+	}
+
+	trap handler
+
+
+# Collect stats Run until monitored process has terminated or stopped by user
 counter=0
 while ( true );
 do
@@ -77,3 +88,8 @@ do
 	fi
 
 done
+
+
+
+
+
