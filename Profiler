@@ -11,7 +11,6 @@ MEMSTAT=0
 CPUSTAT=0
 
 
-
 # Collect stats Run until monitored process has terminated or stopped by user
 counter=0
 while ( true );
@@ -58,7 +57,7 @@ do
 
 
 	# Write stats to current directory
-	FILENAME=$(printf "profile%08d" $counter)
+ 	FILENAME=$(printf "profile%08d")
 	if [ $? -ne 0 ]; then
 		echo "Could not generate filename $FILENAME"
 		break
@@ -79,25 +78,23 @@ do
 
 done
 
+	#handling signal
+	trap handler
 
-#Signaling handling
-	handler ()
-	
-	PID=0
-	PID=$(pidof iperf)
-	echo "The PID is " $PID
-	
+	handler()
 	{
-		kill -s  USR1 $PID
+		kill  SIGUSR1 $PID
+
 	}
 
-	program &
-	PID=$!
 
-	trap handler SIGUSR1
+	#Parsing files  and generating graphs
 
-	wait $PID
+	input='/home/john/CPT264---UNIX-Assignment-2/profile00000000
 
-
+	while IFS=read -r line
+		do
+		echo "$line"
+	done < "$input"
 
 
