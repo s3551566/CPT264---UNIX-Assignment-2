@@ -19,22 +19,21 @@ do
 
 	#CPU Temperature
 	CPUTEMP=$(cat </sys/class/thermal/thermal_zone0/temp)
-	if [ $? -ne 0 ]; then
+	if [[ "$CPUTEMP" -ne "0" ]]; then
 		echo "Could not get CPUTEMP"
 		break
 	fi
 
 	#Frequency
 	CPUFREQ=$(vcgencmd measure_clock core | awk 'BEGIN { FS = "=" } { printf "%.2f", $2/1000000 }' )
-	if [ $? -ne 0 ]; then
+	if [[ "$CPUFREQ" -ne "0" ]]; then
 		echo "Could not get CPUFREQ"
 		break
 	fi
 
-
 	#Video tmp
 	VIDTEMP=$(vcgencmd measure_temp | awk 'BEGIN { FS = "=" } { printf "%.2f", $2 }' )
-	if [ $? -ne 0 ]; then
+	if [[ "$VIDTEMP" -ne "0" ]]; then
 		echo "Could not get VIDTEMP"
 		break
 	fi
@@ -42,7 +41,7 @@ do
 
 	#Memory
 	MEMSTAT=$(free --giga | awk '(NR > 1)')
-	if [ $? -ne 0 ]; then
+	if [[ "$MEMSTAT" -ne "0" ]]; then
 		echo "Could not get MEMSTAT"
 		break
 	fi
@@ -50,7 +49,7 @@ do
 
 	#CPU Usage
 	CPUSTAT=$(mpstat -P ALL | awk '(NR > 3)')
-	if [ $? -ne 0 ]; then
+	if [[ "$CPUSTAT" -ne "0" ]]; then
 		echo "Could not get CPUSTAT"
 		break
 	fi
@@ -58,36 +57,34 @@ do
 
 	# Write stats to current directory
   	FILENAME=$(printf "profile")
-	if [ $? -ne 0 ]; then
+	if [[ "$FILENAME" -ne "0" ]]; then
 		echo "Could not generate filename $FILENAME"
 		break
 	fi
 
 	printf "%s\n%s\n%s\n%s\n%s\n%s\n" "$counter" "$CPUTEMP" "$CPUFREQ" "$VIDTEMP" "$MEMSTAT" "$CPUSTAT" > "$FILENAME"
-	if [ $? -ne 0 ]; then
+	if [[ "$FILENAME" -ne "0" ]]; then
 		echo "Could not write file $FILENAME"
 		break
 	fi
 
 	# Wait for next run
 	sleep $WAIT_TIME
-	if [ $? -ne 0 ]; then
+	if [[ "$WAIT_TIME" -ne "0" ]]; then
 		echo "Could not perform wait"
 		break
 	fi
 
-done
+	done
 
 	#handling signal
-	trap handler
-	handler
+	handler()
 	{
-		kill  SIGUSR1 "$PID"
+		-SIGUSR1  $PID
 	}
+	trap handler KILL
 
 
 	#Parsing files  and generating graphs
 
-	while read -r line;do
-		echo "$line"
-	done < profile
+	
