@@ -80,9 +80,9 @@ do
 	#handling signal
 	handler()
 	{
-		-SIGUSR1  $PID
+		kill SIGUSR1  "$PID"
 	}
-	trap handler KILL
+	trap handler 
 
 
 	#Parsing files  and generating graphs
