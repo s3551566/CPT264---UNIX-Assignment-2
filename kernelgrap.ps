@@ -1,0 +1,16 @@
+#set resolution
+set terminal png size 700,700
+
+#specify x axis
+set data $counter
+
+#set x axis range from $counter variable
+set xrange [ $counter(0) - ${#counter} : $counter(0) ]
+
+#export image as png
+set output 'RaspberryVSTmp.png'
+
+#specify input file and call gnuplot
+plot $FILENAME 1:2 with lines | gnuplot
+
+ 
