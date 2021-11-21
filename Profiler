@@ -4,7 +4,7 @@
 WAIT_TIME=1		# Wait 1 second between data collection
 
 #Variables
-CPUTEMP=O
+CPUTEMP=0
 CPUFREQ=0
 VIDTEMP=0
 MEMSTAT=0
@@ -19,37 +19,36 @@ do
 
 	#CPU Temperature
 	CPUTEMP=$(cat </sys/class/thermal/thermal_zone0/temp)
-	if [[ "$CPUTEMP" -ne "0" ]]; then
+	 if [[ $? -ne 0 ]]; then
 		echo "Could not get CPUTEMP"
 		break
 	fi
 
 	#Frequency
 	CPUFREQ=$(vcgencmd measure_clock core | awk 'BEGIN { FS = "=" } { printf "%.2f", $2/1000000 }' )
-	if [[ "$CPUFREQ" -ne "0" ]]; then
+	if [[ $? -ne 0 ]]; then
 		echo "Could not get CPUFREQ"
 		break
 	fi
 
 	#Video tmp
 	VIDTEMP=$(vcgencmd measure_temp | awk 'BEGIN { FS = "=" } { printf "%.2f", $2 }' )
-	if [[ "$VIDTEMP" -ne "0" ]]; then
+	if [[ $? -ne 0 ]]; then
 		echo "Could not get VIDTEMP"
 		break
 	fi
 
-
 	#Memory
-	MEMSTAT=$(free --giga | awk '(NR > 1)')
-	if [[ "$MEMSTAT" -ne "0" ]]; then
+	MEMSTAT=$(free --giga | awk "(NR > 1)")
+	if [[ $? -ne 0 ]]; then
 		echo "Could not get MEMSTAT"
 		break
 	fi
 
 
 	#CPU Usage
-	CPUSTAT=$(mpstat -P ALL | awk '(NR > 3)')
-	if [[ "$CPUSTAT" -ne "0" ]]; then
+	CPUSTAT=$(mpstat -P ALL | awk "(NR > 3)")
+	if [[ $? -ne 0 ]]; then
 		echo "Could not get CPUSTAT"
 		break
 	fi
@@ -57,34 +56,23 @@ do
 
 	# Write stats to current directory
   	FILENAME=$(printf "profile")
-	if [[ "$FILENAME" -ne "0" ]]; then
+	if [[ $? -ne 0 ]]; then
 		echo "Could not generate filename $FILENAME"
 		break
 	fi
 
-	printf "%s\n%s\n%s\n%s\n%s\n%s\n" "$counter" "$CPUTEMP" "$CPUFREQ" "$VIDTEMP" "$MEMSTAT" "$CPUSTAT" > "$FILENAME"
-	if [[ "$FILENAME" -ne "0" ]]; then
-		echo "Could not write file $FILENAME"
-		break
-	fi
+	printf "%s\n%s\n%s\n%s\n%s\n%s\n" "counter" "$CPUTEMP" "$CPUFREQ" "$VIDTEMP" "$MEMSTAT" "$CPUSTAT" >"FILENAME" 
+
 
 	# Wait for next run
 	sleep $WAIT_TIME
-	if [[ "$WAIT_TIME" -ne "0" ]]; then
+	if [[ $? -ne 0 ]]; then
 		echo "Could not perform wait"
 		break
 	fi
-
-	done
+done
 
 	#handling signal
-	handler()
-	{
-		kill SIGUSR1  "$PID"
-	}
-	trap handler 
+	trap "{echo 'kill -SIGUSR1 "$PID"}"  SIGUSR1
 
 
-	#Parsing files  and generating graphs
-
-	
